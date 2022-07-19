@@ -59,6 +59,12 @@ async function getAllPotentialPlaydateGameNames() {
 }
 
 export async function sideload(message = console.log) {
+  const exists = await fs.pathExists('./log.json');
+
+  if (!exists) {
+    await fs.writeJson("./log.json", {});
+  }
+
   message("Logging in...");
   const [token, potentialGameNames] = await Promise.all([
     login(),
