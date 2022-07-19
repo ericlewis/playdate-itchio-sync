@@ -1,0 +1,19 @@
+{
+  "name": "playdate-itchio-sync",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "type": "module",
+  "author": "Eric Lewis",
+  "license": "MIT",
+  "dependencies": {
+    "fetch-cookie": "^2.1.0",
+    "formdata-node": "^4.3.3",
+    "fs-extra": "^10.1.0",
+    "jsdom": "^20.0.0",
+    "node-fetch": "^3.2.9"
+  }
+}
