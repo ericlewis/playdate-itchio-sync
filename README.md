@@ -2,6 +2,9 @@
 
 Keep your Playdate sideload games synced with your itch.io playdate game library.
 
+## Requirements
+- node.js 16+
+
 ## Directions
 1. Rename `credentials.example.json` to `credentials.json` and fill out the file appropriately.
 2. Run `npm install`.
