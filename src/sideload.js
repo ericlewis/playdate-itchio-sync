@@ -59,10 +59,13 @@ async function getAllPotentialPlaydateGameNames() {
 }
 
 export async function sideload(message = console.log) {
-  const exists = await fs.pathExists('./log.json');
-
+  let exists = await fs.pathExists('./log.json');
   if (!exists) {
     await fs.writeJson("./log.json", {});
+  }
+  exists = await fs.pathExists('./credentials.json');
+  if (!exists) {
+    throw new Error("You must create a credentials.json file!");
   }
 
   message("Logging in...");
