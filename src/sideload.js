@@ -59,11 +59,11 @@ async function getAllPotentialPlaydateGameNames() {
 }
 
 export async function sideload(message = console.log) {
-  let exists = await fs.pathExists('./log.json');
+  let exists = await fs.pathExists('log.json');
   if (!exists) {
-    await fs.writeJson("./log.json", {});
+    await fs.writeJson("log.json", {});
   }
-  exists = await fs.pathExists('./credentials.json');
+  exists = await fs.pathExists('credentials.json');
   if (!exists) {
     throw new Error("You must create a credentials.json file!");
   }
@@ -131,6 +131,6 @@ export async function sideload(message = console.log) {
     }
   }
 
-  await fs.writeJson("./log.json", log);
+  await fs.writeJson("log.json", log);
   message("Done!");
 }
