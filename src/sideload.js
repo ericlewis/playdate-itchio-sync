@@ -120,7 +120,7 @@ export async function sideload(message = console.log) {
         await uploadGame(filename);
         log[game.game_id] = download;
         stats.updated++;
-      } else if (log[game.game_id]) {
+      } else if (log[game.game_id] && log[game.game_id].md5_hash === download.md5_hash) {
         message(`[Skip]`, `(MD5 Matches)`, game.game.title);
         stats.skipped++;
       } else {
