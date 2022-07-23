@@ -68,13 +68,13 @@ export async function sideload(message = console.log) {
     throw new Error("You must create a credentials.json file!");
   }
 
-  message("Logging in...");
+  message("[System]", "Signing in");
   const [token, potentialGameNames] = await Promise.all([
     login(),
     getAllPotentialPlaydateGameNames(),
   ]);
 
-  message("Sideloading games...");
+  message("[System]", "Processing libraries");
   const [sideloads, { owned_keys: games }] = await Promise.all([
     getSideloads(),
     getGames(token),
@@ -99,6 +99,12 @@ export async function sideload(message = console.log) {
     }
   });
 
+  const stats = {
+    added: 0,
+    skipped: 0,
+    updated: 0
+  }
+
   const log = await fs.readJson("./log.json");
   if (sideloaded.size > 0) {
     for (const game of sideloaded) {
@@ -109,28 +115,40 @@ export async function sideload(message = console.log) {
         log[game.game_id] &&
         log[game.game_id].md5_hash !== download.md5_hash
       ) {
-        message(`Sideloading ${game.game.title}...`);
+        message(`[Update]`, game.game.title);
         const filename = await downloadGame(game, token);
         await uploadGame(filename);
         log[game.game_id] = download;
+        stats.updated++;
+      } else if (log[game.game_id]) {
+        message(`[Skip]`, `(MD5 Matches)`, game.game.title);
+        stats.skipped++;
       } else {
-        message(`Skipping ${game.game.title}.`);
+        message("[Sideload]", game.game.title);
+        const {
+          uploads: [download],
+        } = await getGameDownloads(game, token);
+        const filename = await downloadGame(game, token);
+        await uploadGame(filename);
+        log[game.game_id] = download;
+        stats.added++;
       }
     }
   }
 
   if (needsSideload.size > 0) {
     for (const game of needsSideload) {
-      message(`Sideloading ${game.game.title}...`);
+      message("[Sideload]", game.game.title);
       const {
         uploads: [download],
       } = await getGameDownloads(game, token);
       const filename = await downloadGame(game, token);
       await uploadGame(filename);
       log[game.game_id] = download;
+      stats.added++;
     }
   }
 
   await fs.writeJson("log.json", log);
-  message("Done!");
+  message(`[Done]`, `(Added: ${stats.added})`, `(Updated: ${stats.updated})`, `(Skipped: ${stats.skipped})`);
 }
