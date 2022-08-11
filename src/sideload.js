@@ -31,25 +31,25 @@ async function checkCredentialsExist() {
   const exists = await fs.pathExists(CRED_PATH);
   if (
     !exists &&
-    !process.env.PD_EMAIL &&
+    !process.env.PD_USERNAME &&
     !process.env.PD_PASSWORD &&
-    !process.env.ITCH_EMAIL &&
+    !process.env.ITCH_USERNAME &&
     !process.env.ITCH_PASSWORD
   ) {
     await enterCredentialsFlow();
   } else if (
-    process.env.PD_EMAIL &&
+    process.env.PD_USERNAME &&
     process.env.PD_PASSWORD &&
-    process.env.ITCH_EMAIL &&
+    process.env.ITCH_USERNAME &&
     process.env.ITCH_PASSWORD
   ) {
     await fs.writeJson(CRED_PATH, {
       pd: {
-        username: process.env.PD_EMAIL,
+        username: process.env.PD_USERNAME,
         password: process.env.PD_PASSWORD,
       },
       itch: {
-        username: process.env.ITCH_EMAIL,
+        username: process.env.ITCH_USERNAME,
         password: process.env.ITCH_PASSWORD,
       },
     });
