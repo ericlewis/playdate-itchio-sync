@@ -29,8 +29,25 @@ async function login() {
 
 async function checkCredentialsExist() {
   const exists = await fs.pathExists(CRED_PATH);
-  if (!exists) {
+  if (
+    !exists ||
+    (!process.env.PD_EMAIL &&
+      !process.env.PD_PASSWORD &&
+      !process.env.ITCH_EMAIL &&
+      !process.env.ITCH_PASSWORD)
+  ) {
     await enterCredentialsFlow();
+  } else {
+    await fs.writeJson(CRED_PATH, {
+      pd: {
+        username: process.env.PD_EMAIL,
+        password: process.env.PD_PASSWORD,
+      },
+      itch: {
+        username: process.env.ITCH_EMAIL,
+        password: process.env.ITCH_PASSWORD,
+      },
+    });
   }
 }
 
@@ -230,3 +247,4 @@ export async function sideload(message = console.log) {
     `(Skipped: ${stats.skipped})`
   );
 }
+

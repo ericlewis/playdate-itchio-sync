@@ -1,0 +1,8 @@
+spec:
+ name: playdate-itchio-sync
+ workers:
+ - name: sync
+   git:
+     branch: digital-ocean-test
+     repo_clone_url: https://github.com/ericlewis/playdate-itchio-sync
+   run_command: npm start
