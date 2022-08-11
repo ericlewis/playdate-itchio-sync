@@ -10,7 +10,7 @@ import { JSDOM } from "jsdom";
 import fs from "fs-extra";
 
 async function login() {
-  const exists = await fs.pathExists('credentials.json');
+  const exists = await fs.pathExists("credentials.json");
   if (!exists) {
     throw new Error("You must create a credentials.json file!");
   }
@@ -64,7 +64,7 @@ async function getAllPotentialPlaydateGameNames() {
 }
 
 export async function sideload(message = console.log) {
-  let exists = await fs.pathExists('log.json');
+  let exists = await fs.pathExists("log.json");
   if (!exists) {
     await fs.writeJson("log.json", {});
   }
@@ -103,38 +103,43 @@ export async function sideload(message = console.log) {
   const stats = {
     added: 0,
     skipped: 0,
-    updated: 0
-  }
+    updated: 0,
+  };
 
   const log = await fs.readJson("./log.json");
   if (sideloaded.size > 0) {
-    for (const game of sideloaded) {
-      const {
-        uploads: [download],
-      } = await getGameDownloads(game, token);
-      if (
-        log[game.game_id] &&
-        log[game.game_id].md5_hash !== download.md5_hash
-      ) {
-        message(`[Update]`, game.game.title);
-        const filename = await downloadGame(game, token);
-        await uploadGame(filename);
-        log[game.game_id] = download;
-        stats.updated++;
-      } else if (log[game.game_id] && log[game.game_id].md5_hash === download.md5_hash) {
-        message(`[Skip]`, `(MD5 Matches)`, game.game.title);
-        stats.skipped++;
-      } else {
-        message("[Sideload]", game.game.title);
+    await Promise.all(
+      Array.from(sideloaded).map(async (game) => {
         const {
           uploads: [download],
         } = await getGameDownloads(game, token);
-        const filename = await downloadGame(game, token);
-        await uploadGame(filename);
-        log[game.game_id] = download;
-        stats.added++;
-      }
-    }
+        if (
+          log[game.game_id] &&
+          log[game.game_id].md5_hash !== download.md5_hash
+        ) {
+          message(`[Update]`, game.game.title);
+          const filename = await downloadGame(game, token);
+          await uploadGame(filename);
+          log[game.game_id] = download;
+          stats.updated++;
+        } else if (
+          log[game.game_id] &&
+          log[game.game_id].md5_hash === download.md5_hash
+        ) {
+          message(`[Skip]`, `(MD5 Matches)`, game.game.title);
+          stats.skipped++;
+        } else {
+          message("[Sideload]", game.game.title);
+          const {
+            uploads: [download],
+          } = await getGameDownloads(game, token);
+          const filename = await downloadGame(game, token);
+          await uploadGame(filename);
+          log[game.game_id] = download;
+          stats.added++;
+        }
+      })
+    );
   }
 
   if (needsSideload.size > 0) {
@@ -151,5 +156,11 @@ export async function sideload(message = console.log) {
   }
 
   await fs.writeJson("log.json", log);
-  message(`[Done]`, `(Added: ${stats.added})`, `(Updated: ${stats.updated})`, `(Skipped: ${stats.skipped})`);
+  message(
+    `[Done]`,
+    `(Added: ${stats.added})`,
+    `(Updated: ${stats.updated})`,
+    `(Skipped: ${stats.skipped})`
+  );
 }
+

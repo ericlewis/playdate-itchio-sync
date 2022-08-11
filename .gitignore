@@ -4,3 +4,4 @@ node_modules
 credentials.json
 log.json
 *.zip
+*.pdx
