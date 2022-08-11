@@ -87,7 +87,7 @@ export async function sideload(message = console.log) {
   const sideloaded = new Set();
   sideloads.forEach(({ title }) => {
     filteredGames.forEach((o) => {
-      if (o.game.title.includes(title)) {
+      if (o.game.title.toLowerCase().includes(title.toLowerCase())) {
         sideloaded.add(o);
       }
     });
