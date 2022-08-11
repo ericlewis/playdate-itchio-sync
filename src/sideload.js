@@ -10,6 +10,11 @@ import { JSDOM } from "jsdom";
 import fs from "fs-extra";
 
 async function login() {
+  const exists = await fs.pathExists('credentials.json');
+  if (!exists) {
+    throw new Error("You must create a credentials.json file!");
+  }
+
   const { pd, itch } = await fs.readJson("./credentials.json");
   await pd_login(pd.username, pd.password);
   const {
@@ -62,10 +67,6 @@ export async function sideload(message = console.log) {
   let exists = await fs.pathExists('log.json');
   if (!exists) {
     await fs.writeJson("log.json", {});
-  }
-  exists = await fs.pathExists('credentials.json');
-  if (!exists) {
-    throw new Error("You must create a credentials.json file!");
   }
 
   message("[System]", "Signing in");
