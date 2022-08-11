@@ -6,9 +6,10 @@ Keep your Playdate sideload games synced with your itch.io playdate game library
 - node.js 16+
 
 ## Directions
-1. `npm install playdate-itchio-sync -g`
-2. `syncpd`
+1. Run `npm install playdate-itchio-sync -g`.
+2. Run `syncpd`.
 3. Follow the prompts for your credentials, they will be saved locally.
+4. A sync will kick off.
 4. You are done! From now on, just run `syncpd`.
 
 ## Notes
