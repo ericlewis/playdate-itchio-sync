@@ -8,19 +8,69 @@ import {
 import fetch from "node-fetch";
 import { JSDOM } from "jsdom";
 import fs from "fs-extra";
+import inquirer from "inquirer";
+import os from "os";
+import { PromisePool } from "@supercharge/promise-pool";
+
+const DATA_PATH = `${os.homedir()}/.pdsync`;
+const LOG_PATH = `${DATA_PATH}/log.json`;
+const CRED_PATH = `${DATA_PATH}/credentials.json`;
 
 async function login() {
-  const exists = await fs.pathExists("credentials.json");
-  if (!exists) {
-    throw new Error("You must create a credentials.json file!");
-  }
+  await checkCredentialsExist();
 
-  const { pd, itch } = await fs.readJson("./credentials.json");
+  const { pd, itch } = await fs.readJson(CRED_PATH);
   await pd_login(pd.username, pd.password);
   const {
     key: { key },
   } = await itch_login(itch.username, itch.password);
   return key;
+}
+
+async function checkCredentialsExist() {
+  const exists = await fs.pathExists(CRED_PATH);
+  if (!exists) {
+    await enterCredentialsFlow();
+  }
+}
+
+async function enterCredentialsFlow() {
+  console.log("Your credentials are stored locally.");
+  const results = await inquirer.prompt([
+    {
+      type: "input",
+      name: "pd_username",
+      message: "play.date username:",
+    },
+    {
+      type: "password",
+      name: "pd_password",
+      message: "play.date password:",
+      mask: "*",
+    },
+    {
+      type: "input",
+      name: "itch_email",
+      message: "itch.io username:",
+    },
+    {
+      type: "password",
+      name: "itch_password",
+      message: "itch.io password:",
+      mask: "*",
+    },
+  ]);
+
+  await fs.writeJson(CRED_PATH, {
+    pd: {
+      username: results.pd_username,
+      password: results.pd_password,
+    },
+    itch: {
+      username: results.itch_email,
+      password: results.itch_password,
+    },
+  });
 }
 
 async function getPotentialPlaydateGameNames(page) {
@@ -64,9 +114,14 @@ async function getAllPotentialPlaydateGameNames() {
 }
 
 export async function sideload(message = console.log) {
-  let exists = await fs.pathExists("log.json");
+  let exists = await fs.pathExists(DATA_PATH);
   if (!exists) {
-    await fs.writeJson("log.json", {});
+    await fs.mkdir(DATA_PATH);
+  }
+
+  exists = await fs.pathExists(LOG_PATH);
+  if (!exists) {
+    await fs.writeJson(LOG_PATH, {});
   }
 
   message("[System]", "Signing in");
@@ -106,10 +161,11 @@ export async function sideload(message = console.log) {
     updated: 0,
   };
 
-  const log = await fs.readJson("./log.json");
+  const log = await fs.readJson(LOG_PATH);
   if (sideloaded.size > 0) {
-    await Promise.all(
-      Array.from(sideloaded).map(async (game) => {
+    await PromisePool.for(Array.from(sideloaded))
+      .withConcurrency(3)
+      .process(async (game) => {
         const {
           uploads: [download],
         } = await getGameDownloads(game, token);
@@ -119,7 +175,11 @@ export async function sideload(message = console.log) {
         ) {
           message(`[Update]`, game.game.title);
           const filename = await downloadGame(game, token);
-          await uploadGame(filename);
+          try {
+            await uploadGame(filename);
+          } finally {
+            await fs.remove(filename);
+          }
           log[game.game_id] = download;
           stats.updated++;
         } else if (
@@ -134,12 +194,15 @@ export async function sideload(message = console.log) {
             uploads: [download],
           } = await getGameDownloads(game, token);
           const filename = await downloadGame(game, token);
-          await uploadGame(filename);
+          try {
+            await uploadGame(filename);
+          } finally {
+            await fs.remove(filename);
+          }
           log[game.game_id] = download;
           stats.added++;
         }
-      })
-    );
+      });
   }
 
   if (needsSideload.size > 0) {
@@ -149,13 +212,17 @@ export async function sideload(message = console.log) {
         uploads: [download],
       } = await getGameDownloads(game, token);
       const filename = await downloadGame(game, token);
-      await uploadGame(filename);
+      try {
+        await uploadGame(filename);
+      } finally {
+        await fs.remove(filename);
+      }
       log[game.game_id] = download;
       stats.added++;
     }
   }
 
-  await fs.writeJson("log.json", log);
+  await fs.writeJson(LOG_PATH, log);
   message(
     `[Done]`,
     `(Added: ${stats.added})`,
@@ -163,4 +230,3 @@ export async function sideload(message = console.log) {
     `(Skipped: ${stats.skipped})`
   );
 }
-

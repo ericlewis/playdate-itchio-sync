@@ -1,7 +1,7 @@
 {
   "name": "playdate-itchio-sync",
-  "version": "1.0.1",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Keep your Playdate sideload games synced with your itch.io playdate game library.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"
@@ -10,10 +10,13 @@
   "author": "Eric Lewis",
   "license": "MIT",
   "dependencies": {
+    "@supercharge/promise-pool": "^2.3.2",
     "fetch-cookie": "^2.1.0",
     "formdata-node": "^4.3.3",
     "fs-extra": "^10.1.0",
+    "inquirer": "^9.1.0",
     "jsdom": "^20.0.0",
+    "keytar": "^7.9.0",
     "node-fetch": "^3.2.9"
   },
   "bin": {
