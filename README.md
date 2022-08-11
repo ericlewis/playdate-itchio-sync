@@ -5,7 +5,7 @@ Keep your Playdate sideload games synced with your itch.io playdate game library
 ## Requirements
 - node.js 16+
 
-## Installation
+## Install
 ```
 npm install playdate-itchio-sync -g
 ```
