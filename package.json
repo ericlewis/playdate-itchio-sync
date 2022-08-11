@@ -1,6 +1,6 @@
 {
   "name": "playdate-itchio-sync",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Keep your Playdate sideload games synced with your itch.io playdate game library.",
   "main": "src/index.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "node-fetch": "^3.2.9"
   },
   "bin": {
-    "syncpd": "src/index.js"
+    "syncpd": "src/index.js",
+    "playdate-itchio-sync": "src/index.js"
   }
 }
