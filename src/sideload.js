@@ -164,7 +164,7 @@ export async function sideload(message = console.log) {
   const log = await fs.readJson(LOG_PATH);
   if (sideloaded.size > 0) {
     await PromisePool.for(Array.from(sideloaded))
-      .withConcurrency(3)
+      .withConcurrency(6)
       .process(async (game) => {
         const {
           uploads: [download],
