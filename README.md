@@ -14,7 +14,7 @@ npm install playdate-itchio-sync -g
 1. Run `syncpd`.
 2. Follow the prompts for your credentials, they will be saved locally.
 3. A sync will kick off.
-4. You are done! From now on, just run `syncpd`.
+4. You are done! From now on, just run `syncpd`, your credentials are saved.
 
 ## Notes
 - Will not work with accounts that use two-factor authentication on itch.io.
