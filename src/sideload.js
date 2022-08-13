@@ -20,11 +20,16 @@ async function login() {
   await checkCredentialsExist();
 
   const { pd, itch } = await fs.readJson(CRED_PATH);
-  await pd_login(pd.username, pd.password);
-  const {
-    key: { key },
-  } = await itch_login(itch.username, itch.password);
-  return key;
+  try {
+      await pd_login(pd.username, pd.password);
+    const {
+      key: { key },
+    } = await itch_login(itch.username, itch.password);
+    return key;
+  } catch {
+    await fs.remove(CRED_PATH);
+    await enterCredentialsFlow();
+  }
 }
 
 async function checkCredentialsExist() {
@@ -165,6 +170,19 @@ export async function sideload(message = console.log) {
   sideloads.forEach(({ title }) => {
     filteredGames.forEach((o) => {
       if (o.game.title.toLowerCase().includes(title.toLowerCase())) {
+        sideloaded.add(o);
+      } else if (
+        o.game.title
+          .toLowerCase()
+          .includes(title.toLowerCase().replaceAll(" ", ""))
+      ) {
+        sideloaded.add(o);
+      } else if (
+        o.game.title
+          .toLowerCase()
+          .replace(/[^a-z0-9 ]/gi, "")
+          .includes(title.toLowerCase().replace(/[^a-z0-9 ]/gi, ""))
+      ) {
         sideloaded.add(o);
       }
     });
