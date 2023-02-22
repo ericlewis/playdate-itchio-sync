@@ -158,7 +158,7 @@ export async function sideload(message = console.log) {
   ]);
 
   message("[System]", "Processing libraries");
-  const [sideloads, { owned_keys: games }] = await Promise.all([
+  const [sideloads, games] = await Promise.all([
     getSideloads(),
     getGames(token),
   ]);
