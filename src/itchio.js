@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import fs from "fs";
-
 export async function login(username, password) {
   const params = new URLSearchParams();
   params.append("username", username);
@@ -18,13 +17,32 @@ export async function login(username, password) {
   return response.json();
 }
 
-export async function getGames(authorization) {
-  const response = await fetch("https://api.itch.io/profile/owned-keys", {
+async function getGamesPage(authorization, page) {
+  const response = await fetch(`https://api.itch.io/profile/owned-keys?page=${page}`, {
     headers: {
       authorization,
     },
   });
   return response.json();
+}
+
+export async function getGames(authorization) {
+  let result = [];
+  let loop = true;
+  let page = 1;
+  
+  while (loop) {
+    const { owned_keys: games } = await getGamesPage(authorization, page);
+    if (Array.isArray(games) && (games.length > 0)) { 
+      result = result.concat(games);
+    }
+    else
+    {
+      loop = false;
+    }
+    page++;
+  }
+  return result;
 }
 
 export async function getGameDownloads(game, authorization) {
