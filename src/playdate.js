@@ -39,25 +39,36 @@ export async function login(username, password) {
 export async function getSideloads() {
   const games = [];
 
-  const response = await fetch("https://play.date/account/");
+  const response = await fetch("https://play.date/account/sideload/");
   const text = await response.text();
 
   const dom = new JSDOM(text);
-  const children = dom.window.document.querySelector(".game-list").children;
+  const children = dom.window.document.querySelector("#sideloadGameList").children[0].children;
 
   for (var i = 0; i < children.length; i++) {
     const child = children[i];
-    const id = child
-      .querySelector('a[class="action"]')
+    const url = "https://play.date" + child
+      .querySelector('a')
       .getAttribute("href")
-      .split("#")[1];
-    const date = child
+
+    const response2 = await fetch(url);
+    const text2 = await response2.text();
+    const dom2 = new JSDOM(text2);
+    const main = dom2.window.document.querySelector('#main');
+    const build = main.querySelector('dl[class="game-build"]');
+
+    const id = main
+      .querySelector('h2[class="sideloadGameTitle"]')
+      .querySelector('a')
+      .getAttribute("href")
+      .split("/")[3];
+    const date = build
       .querySelector('dd[class="game-date"]')
       .textContent.trim(); // todo: normalize this to ISO8061
-    const title = child
-      .querySelector('dd[class="game-title"]')
+    const title = main
+      .querySelector('h2[class="sideloadGameTitle"]')
       .textContent.trim();
-    const version = child
+    const version = build
       .querySelector('dd[class="game-version"]')
       .textContent.trim();
     const game = {
