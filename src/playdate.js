@@ -47,10 +47,14 @@ export async function getSideloads() {
 
   for (var i = 0; i < children.length; i++) {
     const child = children[i];
-    const url = "https://play.date" + child
-      .querySelector('a')
-      .getAttribute("href")
-
+    var url = child.querySelector('a').getAttribute("href");
+    //updated page starts with "//" and is missing https:
+    if (url.startsWith("//play.date"))
+      url = "https:" + url;
+    else
+      //old system href did not contain this
+      if(!url.startsWith("https://play.date"))
+        url = url + "https://play.date";
     const response2 = await fetch(url);
     const text2 = await response2.text();
     const dom2 = new JSDOM(text2);
