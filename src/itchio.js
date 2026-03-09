@@ -62,26 +62,28 @@ export function findPlaydateUpload(uploads) {
   if (!uploads || uploads.length === 0) return null;
   if (uploads.length === 1) return uploads[0];
 
+  // Filter out uploads explicitly tagged for other platforms (Android, Windows, etc.)
+  // Playdate isn't a recognized itch.io platform, so Playdate uploads have no platform flags set
+  const nonTagged = uploads.filter(
+    (u) => !u.p_android && !u.p_windows && !u.p_linux && !u.p_osx
+  );
+  const candidates = nonTagged.length > 0 ? nonTagged : uploads;
+
   // Prefer uploads with .pdx.zip extension
-  const pdxZip = uploads.find((u) =>
+  const pdxZip = candidates.find((u) =>
     u.filename?.toLowerCase().endsWith(".pdx.zip")
   );
   if (pdxZip) return pdxZip;
 
-  // Look for "playdate" in the filename
-  const playdateInName = uploads.find((u) =>
-    u.filename?.toLowerCase().includes("playdate")
+  // Look for "playdate" in the filename or display name
+  const playdateMatch = candidates.find(
+    (u) =>
+      u.filename?.toLowerCase().includes("playdate") ||
+      u.display_name?.toLowerCase().includes("playdate")
   );
-  if (playdateInName) return playdateInName;
+  if (playdateMatch) return playdateMatch;
 
-  // Look for "playdate" in the display name
-  const playdateInDisplay = uploads.find((u) =>
-    u.display_name?.toLowerCase().includes("playdate")
-  );
-  if (playdateInDisplay) return playdateInDisplay;
-
-  // Fallback to first upload
-  return uploads[0];
+  return candidates[0];
 }
 
 export async function downloadGame(game, authorization) {
