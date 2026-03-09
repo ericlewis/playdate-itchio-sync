@@ -4,6 +4,7 @@ import {
   getGames,
   downloadGame,
   getGameDownloads,
+  findPlaydateUpload,
 } from "./itchio.js";
 import fetch from "node-fetch";
 import { JSDOM } from "jsdom";
@@ -206,9 +207,8 @@ export async function sideload(message = console.log) {
     await PromisePool.for(Array.from(sideloaded))
       .withConcurrency(6)
       .process(async (game) => {
-        const {
-          uploads: [download],
-        } = await getGameDownloads(game, token);
+        const { uploads } = await getGameDownloads(game, token);
+        const download = findPlaydateUpload(uploads);
         if (
           log[game.game_id] &&
           log[game.game_id].md5_hash !== download.md5_hash
@@ -230,9 +230,6 @@ export async function sideload(message = console.log) {
           stats.skipped++;
         } else {
           message("[Sideload]", game.game.title);
-          const {
-            uploads: [download],
-          } = await getGameDownloads(game, token);
           const filename = await downloadGame(game, token);
           try {
             await uploadGame(filename);
@@ -248,9 +245,8 @@ export async function sideload(message = console.log) {
   if (needsSideload.size > 0) {
     for (const game of needsSideload) {
       message("[Sideload]", game.game.title);
-      const {
-        uploads: [download],
-      } = await getGameDownloads(game, token);
+      const { uploads } = await getGameDownloads(game, token);
+      const download = findPlaydateUpload(uploads);
       const filename = await downloadGame(game, token);
       try {
         await uploadGame(filename);

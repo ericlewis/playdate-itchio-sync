@@ -58,17 +58,45 @@ export async function getGameDownloads(game, authorization) {
   return response.json();
 }
 
+export function findPlaydateUpload(uploads) {
+  if (!uploads || uploads.length === 0) return null;
+  if (uploads.length === 1) return uploads[0];
+
+  // Match .pdx.zip first across all uploads so a Playdate build tagged with
+  // desktop platform flags (e.g. p_windows) is never excluded
+  const pdxZip = uploads.find((u) =>
+    u.filename?.toLowerCase().endsWith(".pdx.zip")
+  );
+  if (pdxZip) return pdxZip;
+
+  // Then look for "playdate" in filename or display name across all uploads
+  const playdateMatch = uploads.find(
+    (u) =>
+      u.filename?.toLowerCase().includes("playdate") ||
+      u.display_name?.toLowerCase().includes("playdate")
+  );
+  if (playdateMatch) return playdateMatch;
+
+  // Fall back to platform filtering: Playdate isn't a recognized itch.io platform,
+  // so Playdate uploads typically have no platform flags set
+  const nonTagged = uploads.filter(
+    (u) => !u.p_android && !u.p_windows && !u.p_linux && !u.p_osx
+  );
+  const candidates = nonTagged.length > 0 ? nonTagged : uploads;
+
+  return candidates[0];
+}
+
 export async function downloadGame(game, authorization) {
   const { game_id, id } = game;
-  const {
-    uploads: [upload],
-  } = await getGameDownloads(
+  const { uploads } = await getGameDownloads(
     {
       game_id,
       id,
     },
     authorization
   );
+  const upload = findPlaydateUpload(uploads);
   let response = await fetch(
     `https://api.itch.io/games/${game_id}/download-sessions`,
     {
