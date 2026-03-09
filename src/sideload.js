@@ -144,6 +144,10 @@ function normalize(str) {
   return str.toLowerCase().replace(/[^a-z0-9 ]/gi, "").trim();
 }
 
+function getSignificantWords(str) {
+  return normalize(str).split(/\s+/).filter((w) => w.length >= 3);
+}
+
 function titlesMatch(itchTitle, playdateTitle) {
   const a = itchTitle.toLowerCase();
   const b = playdateTitle.toLowerCase();
@@ -163,6 +167,14 @@ function titlesMatch(itchTitle, playdateTitle) {
   if (aNorm.includes(bNorm) || bNorm.includes(aNorm)) return true;
 
   return false;
+}
+
+// Looser match: checks if both titles share a significant word (4+ chars).
+// Only safe to use on a small pool of unmatched candidates.
+function titlesFuzzyMatch(itchTitle, playdateTitle) {
+  const wordsA = getSignificantWords(itchTitle);
+  const wordsB = new Set(getSignificantWords(playdateTitle));
+  return wordsA.some((w) => w.length >= 4 && wordsB.has(w));
 }
 
 export async function sideload(message = console.log) {
@@ -191,21 +203,35 @@ export async function sideload(message = console.log) {
     games.filter((o) => potentialGameNames.has(o.game.title))
   );
 
+  // Pass 1: strict matching (bidirectional includes)
   const sideloaded = new Set();
-  sideloads.forEach(({ title }) => {
+  const matchedSideloads = new Set();
+  sideloads.forEach((sideload) => {
     filteredGames.forEach((o) => {
-      if (titlesMatch(o.game.title, title)) {
+      if (titlesMatch(o.game.title, sideload.title)) {
         sideloaded.add(o);
+        matchedSideloads.add(sideload);
       }
     });
   });
 
-  const needsSideload = new Set();
+  // Pass 2: fuzzy matching on only the unmatched remainders (small pool)
+  const unmatchedGames = new Set();
   filteredGames.forEach((o) => {
-    if (!sideloaded.has(o)) {
-      needsSideload.add(o);
-    }
+    if (!sideloaded.has(o)) unmatchedGames.add(o);
   });
+  const unmatchedSideloads = sideloads.filter((s) => !matchedSideloads.has(s));
+
+  unmatchedSideloads.forEach(({ title }) => {
+    unmatchedGames.forEach((o) => {
+      if (titlesFuzzyMatch(o.game.title, title)) {
+        sideloaded.add(o);
+        unmatchedGames.delete(o);
+      }
+    });
+  });
+
+  const needsSideload = unmatchedGames;
 
   const stats = {
     added: 0,
