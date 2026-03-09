@@ -152,19 +152,28 @@ function titlesMatch(itchTitle, playdateTitle) {
   const a = itchTitle.toLowerCase();
   const b = playdateTitle.toLowerCase();
 
-  // Bidirectional includes (exact)
-  if (a.includes(b) || b.includes(a)) return true;
+  // Exact match
+  if (a === b) return true;
+
+  // Bidirectional includes — only when the shorter string is long enough
+  // to be meaningful (avoids short titles like "Go" matching everything)
+  const MIN_SUBSTR_LEN = 4;
+  if (a.length >= MIN_SUBSTR_LEN && b.includes(a)) return true;
+  if (b.length >= MIN_SUBSTR_LEN && a.includes(b)) return true;
 
   // Bidirectional includes (spaces removed)
   const aNoSpaces = a.replaceAll(" ", "");
   const bNoSpaces = b.replaceAll(" ", "");
-  if (aNoSpaces.includes(bNoSpaces) || bNoSpaces.includes(aNoSpaces))
+  if (aNoSpaces.length >= MIN_SUBSTR_LEN && bNoSpaces.includes(aNoSpaces))
+    return true;
+  if (bNoSpaces.length >= MIN_SUBSTR_LEN && aNoSpaces.includes(bNoSpaces))
     return true;
 
   // Bidirectional includes (alphanumeric only)
   const aNorm = normalize(itchTitle);
   const bNorm = normalize(playdateTitle);
-  if (aNorm.includes(bNorm) || bNorm.includes(aNorm)) return true;
+  if (aNorm.length >= MIN_SUBSTR_LEN && bNorm.includes(aNorm)) return true;
+  if (bNorm.length >= MIN_SUBSTR_LEN && aNorm.includes(bNorm)) return true;
 
   return false;
 }
@@ -225,14 +234,15 @@ export async function sideload(message = console.log) {
   });
   const unmatchedSideloads = sideloads.filter((s) => !matchedSideloads.has(s));
 
-  unmatchedSideloads.forEach(({ title }) => {
-    unmatchedGames.forEach((o) => {
+  for (const { title } of unmatchedSideloads) {
+    for (const o of unmatchedGames) {
       if (titlesFuzzyMatch(o.game.title, title)) {
         sideloaded.add(o);
         unmatchedGames.delete(o);
+        break; // one sideload matches at most one game
       }
-    });
-  });
+    }
+  }
 
   const needsSideload = unmatchedGames;
 
