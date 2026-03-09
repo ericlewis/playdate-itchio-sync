@@ -6,8 +6,15 @@ Keep your Playdate sideload games synced with your itch.io playdate game library
 - [Bun](https://bun.sh) v1.0+
 
 ## Install
+
+From npm:
 ```
 bun install playdate-itchio-sync -g
+```
+
+From GitHub Packages:
+```
+npm install -g @<github-owner>/playdate-itchio-sync --registry=https://npm.pkg.github.com
 ```
 
 ## Directions
@@ -15,6 +22,22 @@ bun install playdate-itchio-sync -g
 2. Follow the prompts for your credentials, they will be saved locally.
 3. A sync will kick off.
 4. You are done! From now on, just run `syncpd`, your credentials are saved.
+
+
+## Release automation
+
+Releases and package publishing are automated through `.github/workflows/release.yml`:
+
+1. Create and push a version tag (for example `v3.1.0`).
+2. GitHub Actions will:
+   - install dependencies and run type checking
+   - publish `playdate-itchio-sync` to npm
+   - publish `@<github-owner>/playdate-itchio-sync` to GitHub Packages
+   - create a GitHub release with generated notes
+
+Repository secrets required:
+
+- `NPM_TOKEN`: npm automation token with publish permission
 
 ## Environment Variables
 
