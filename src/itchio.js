@@ -58,17 +58,42 @@ export async function getGameDownloads(game, authorization) {
   return response.json();
 }
 
+export function findPlaydateUpload(uploads) {
+  if (!uploads || uploads.length === 0) return null;
+  if (uploads.length === 1) return uploads[0];
+
+  // Prefer uploads with .pdx.zip extension
+  const pdxZip = uploads.find((u) =>
+    u.filename?.toLowerCase().endsWith(".pdx.zip")
+  );
+  if (pdxZip) return pdxZip;
+
+  // Look for "playdate" in the filename
+  const playdateInName = uploads.find((u) =>
+    u.filename?.toLowerCase().includes("playdate")
+  );
+  if (playdateInName) return playdateInName;
+
+  // Look for "playdate" in the display name
+  const playdateInDisplay = uploads.find((u) =>
+    u.display_name?.toLowerCase().includes("playdate")
+  );
+  if (playdateInDisplay) return playdateInDisplay;
+
+  // Fallback to first upload
+  return uploads[0];
+}
+
 export async function downloadGame(game, authorization) {
   const { game_id, id } = game;
-  const {
-    uploads: [upload],
-  } = await getGameDownloads(
+  const { uploads } = await getGameDownloads(
     {
       game_id,
       id,
     },
     authorization
   );
+  const upload = findPlaydateUpload(uploads);
   let response = await fetch(
     `https://api.itch.io/games/${game_id}/download-sessions`,
     {
