@@ -148,15 +148,11 @@ function getSignificantWords(str) {
   return normalize(str).split(/\s+/).filter((w) => w.length >= 3);
 }
 
-// Returns true only when the shorter string is a substring of the longer AND
-// is at least half the length of the longer string. This prevents short,
-// generic titles ("Golf") from matching inside longer unrelated ones
-// ("Mini Golf") while still allowing genuine subtitle variations
-// ("Crankin's Time Travel" inside "Crankin's Time Travel Adventure").
+// Bidirectional substring check — returns true when either string contains
+// the other. This is intentionally broad; the two-pass structure (strict
+// then fuzzy) already limits the blast radius of false positives.
 function substringMatch(a, b) {
-  const short = a.length <= b.length ? a : b;
-  const long = a.length <= b.length ? b : a;
-  return short.length > 0 && short.length >= long.length / 2 && long.includes(short);
+  return (a.length > 0 && b.includes(a)) || (b.length > 0 && a.includes(b));
 }
 
 function titlesMatch(itchTitle, playdateTitle) {
