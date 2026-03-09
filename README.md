@@ -3,11 +3,11 @@
 Keep your Playdate sideload games synced with your itch.io playdate game library.
 
 ## Requirements
-- node.js 16+
+- [Bun](https://bun.sh) v1.0+
 
 ## Install
 ```
-npm install playdate-itchio-sync -g
+bun install playdate-itchio-sync -g
 ```
 
 ## Directions
@@ -15,6 +15,15 @@ npm install playdate-itchio-sync -g
 2. Follow the prompts for your credentials, they will be saved locally.
 3. A sync will kick off.
 4. You are done! From now on, just run `syncpd`, your credentials are saved.
+
+## Environment Variables
+
+You can also provide credentials via environment variables instead of the interactive prompt:
+
+- `PD_USERNAME` — play.date account email
+- `PD_PASSWORD` — play.date account password
+- `ITCH_USERNAME` — itch.io username
+- `ITCH_PASSWORD` — itch.io password
 
 ## Notes
 - Will not work with accounts that use two-factor authentication on itch.io.
@@ -24,4 +33,4 @@ npm install playdate-itchio-sync -g
 - Use at your own risk!
 
 ## License
-MIT, copyright 2022 Eric Lewis.
+MIT, copyright 2022-2026 Eric Lewis.

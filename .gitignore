@@ -5,3 +5,4 @@ credentials.json
 log.json
 *.zip
 *.pdx
+dist
