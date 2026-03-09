@@ -169,12 +169,15 @@ function titlesMatch(itchTitle, playdateTitle) {
   return false;
 }
 
-// Looser match: checks if both titles share a significant word (4+ chars).
-// Only safe to use on a small pool of unmatched candidates.
+// Looser match: requires the first significant word (4+ chars) of each title
+// to be the same. Game names lead with the actual title; subtitles and
+// descriptors ("Demo", "Deluxe Edition") come after, so comparing leading
+// words avoids false positives on generic terms.
+// Only used on the small pool of unmatched candidates after strict matching.
 function titlesFuzzyMatch(itchTitle, playdateTitle) {
-  const wordsA = getSignificantWords(itchTitle);
-  const wordsB = new Set(getSignificantWords(playdateTitle));
-  return wordsA.some((w) => w.length >= 4 && wordsB.has(w));
+  const firstA = getSignificantWords(itchTitle).find((w) => w.length >= 4);
+  const firstB = getSignificantWords(playdateTitle).find((w) => w.length >= 4);
+  return firstA != null && firstA === firstB;
 }
 
 export async function sideload(message = console.log) {
