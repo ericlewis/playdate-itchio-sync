@@ -62,26 +62,27 @@ export function findPlaydateUpload(uploads) {
   if (!uploads || uploads.length === 0) return null;
   if (uploads.length === 1) return uploads[0];
 
-  // Filter out uploads explicitly tagged for other platforms (Android, Windows, etc.)
-  // Playdate isn't a recognized itch.io platform, so Playdate uploads have no platform flags set
-  const nonTagged = uploads.filter(
-    (u) => !u.p_android && !u.p_windows && !u.p_linux && !u.p_osx
-  );
-  const candidates = nonTagged.length > 0 ? nonTagged : uploads;
-
-  // Prefer uploads with .pdx.zip extension
-  const pdxZip = candidates.find((u) =>
+  // Match .pdx.zip first across all uploads so a Playdate build tagged with
+  // desktop platform flags (e.g. p_windows) is never excluded
+  const pdxZip = uploads.find((u) =>
     u.filename?.toLowerCase().endsWith(".pdx.zip")
   );
   if (pdxZip) return pdxZip;
 
-  // Look for "playdate" in the filename or display name
-  const playdateMatch = candidates.find(
+  // Then look for "playdate" in filename or display name across all uploads
+  const playdateMatch = uploads.find(
     (u) =>
       u.filename?.toLowerCase().includes("playdate") ||
       u.display_name?.toLowerCase().includes("playdate")
   );
   if (playdateMatch) return playdateMatch;
+
+  // Fall back to platform filtering: Playdate isn't a recognized itch.io platform,
+  // so Playdate uploads typically have no platform flags set
+  const nonTagged = uploads.filter(
+    (u) => !u.p_android && !u.p_windows && !u.p_linux && !u.p_osx
+  );
+  const candidates = nonTagged.length > 0 ? nonTagged : uploads;
 
   return candidates[0];
 }
