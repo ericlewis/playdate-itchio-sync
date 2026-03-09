@@ -166,11 +166,18 @@ function titlesMatch(itchTitle, playdateTitle) {
   const bNorm = normalize(playdateTitle);
   if (aNorm.includes(bNorm) || bNorm.includes(aNorm)) return true;
 
-  // Shared significant words: if they share at least one word of 3+ chars,
-  // consider them a match (handles title mismatches across platforms)
+  // Normalized prefix: match if both titles start with the same first word (4+ chars).
+  // Handles title mismatches across platforms (e.g. "ART7 + ART-O-Ween" vs "ART7 1-bit Gallery")
+  // while avoiding false positives from incidental shared words.
   const wordsA = getSignificantWords(itchTitle);
-  const wordsB = new Set(getSignificantWords(playdateTitle));
-  if (wordsA.some((w) => wordsB.has(w))) return true;
+  const wordsB = getSignificantWords(playdateTitle);
+  if (
+    wordsA.length > 0 &&
+    wordsB.length > 0 &&
+    wordsA[0].length >= 4 &&
+    wordsA[0] === wordsB[0]
+  )
+    return true;
 
   return false;
 }
