@@ -166,16 +166,23 @@ function titlesMatch(itchTitle, playdateTitle) {
   const bNorm = normalize(playdateTitle);
   if (aNorm.includes(bNorm) || bNorm.includes(aNorm)) return true;
 
-  // Normalized prefix: match if both titles start with the same first word (4+ chars).
-  // Handles title mismatches across platforms (e.g. "ART7 + ART-O-Ween" vs "ART7 1-bit Gallery")
-  // while avoiding false positives from incidental shared words.
+  // First-word prefix match: if both titles start with the same distinctive word (4+ chars),
+  // treat them as the same game. Handles title mismatches across platforms
+  // (e.g. "ART7 + ART-O-Ween" vs "ART7 1-bit Gallery").
+  // Common generic words are excluded to avoid false positives.
+  const commonWords = new Set([
+    "game", "play", "mini", "super", "dark", "tiny", "mega", "pixel",
+    "retro", "free", "demo", "test", "beta", "lite", "plus", "gold",
+    "deluxe", "edition", "version", "playdate",
+  ]);
   const wordsA = getSignificantWords(itchTitle);
   const wordsB = getSignificantWords(playdateTitle);
   if (
     wordsA.length > 0 &&
     wordsB.length > 0 &&
     wordsA[0].length >= 4 &&
-    wordsA[0] === wordsB[0]
+    wordsA[0] === wordsB[0] &&
+    !commonWords.has(wordsA[0])
   )
     return true;
 
