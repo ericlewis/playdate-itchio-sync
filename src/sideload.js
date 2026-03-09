@@ -148,32 +148,33 @@ function getSignificantWords(str) {
   return normalize(str).split(/\s+/).filter((w) => w.length >= 3);
 }
 
+// Returns true only when the shorter string is a substring of the longer AND
+// is at least half the length of the longer string. This prevents short,
+// generic titles ("Golf") from matching inside longer unrelated ones
+// ("Mini Golf") while still allowing genuine subtitle variations
+// ("Crankin's Time Travel" inside "Crankin's Time Travel Adventure").
+function substringMatch(a, b) {
+  const short = a.length <= b.length ? a : b;
+  const long = a.length <= b.length ? b : a;
+  return short.length > 0 && short.length >= long.length / 2 && long.includes(short);
+}
+
 function titlesMatch(itchTitle, playdateTitle) {
   const a = itchTitle.toLowerCase();
   const b = playdateTitle.toLowerCase();
 
-  // Exact match
   if (a === b) return true;
+  if (substringMatch(a, b)) return true;
 
-  // Bidirectional includes — only when the shorter string is long enough
-  // to be meaningful (avoids short titles like "Go" matching everything)
-  const MIN_SUBSTR_LEN = 4;
-  if (a.length >= MIN_SUBSTR_LEN && b.includes(a)) return true;
-  if (b.length >= MIN_SUBSTR_LEN && a.includes(b)) return true;
-
-  // Bidirectional includes (spaces removed)
+  // Spaces removed
   const aNoSpaces = a.replaceAll(" ", "");
   const bNoSpaces = b.replaceAll(" ", "");
-  if (aNoSpaces.length >= MIN_SUBSTR_LEN && bNoSpaces.includes(aNoSpaces))
-    return true;
-  if (bNoSpaces.length >= MIN_SUBSTR_LEN && aNoSpaces.includes(bNoSpaces))
-    return true;
+  if (substringMatch(aNoSpaces, bNoSpaces)) return true;
 
-  // Bidirectional includes (alphanumeric only)
+  // Alphanumeric only
   const aNorm = normalize(itchTitle);
   const bNorm = normalize(playdateTitle);
-  if (aNorm.length >= MIN_SUBSTR_LEN && bNorm.includes(aNorm)) return true;
-  if (bNorm.length >= MIN_SUBSTR_LEN && aNorm.includes(bNorm)) return true;
+  if (substringMatch(aNorm, bNorm)) return true;
 
   return false;
 }
