@@ -54,7 +54,7 @@ export async function getSideloads() {
     else
       //old system href did not contain this
       if(!url.startsWith("https://play.date"))
-        url = url + "https://play.date";
+        url = "https://play.date" + url;
     const response2 = await fetch(url);
     const text2 = await response2.text();
     const dom2 = new JSDOM(text2);
