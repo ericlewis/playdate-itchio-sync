@@ -140,6 +140,41 @@ async function getAllPotentialPlaydateGameNames() {
   return allNames;
 }
 
+function normalize(str) {
+  return str.toLowerCase().replace(/[^a-z0-9 ]/gi, "").trim();
+}
+
+function getSignificantWords(str) {
+  return normalize(str).split(/\s+/).filter((w) => w.length >= 3);
+}
+
+function titlesMatch(itchTitle, playdateTitle) {
+  const a = itchTitle.toLowerCase();
+  const b = playdateTitle.toLowerCase();
+
+  // Bidirectional includes (exact)
+  if (a.includes(b) || b.includes(a)) return true;
+
+  // Bidirectional includes (spaces removed)
+  const aNoSpaces = a.replaceAll(" ", "");
+  const bNoSpaces = b.replaceAll(" ", "");
+  if (aNoSpaces.includes(bNoSpaces) || bNoSpaces.includes(aNoSpaces))
+    return true;
+
+  // Bidirectional includes (alphanumeric only)
+  const aNorm = normalize(itchTitle);
+  const bNorm = normalize(playdateTitle);
+  if (aNorm.includes(bNorm) || bNorm.includes(aNorm)) return true;
+
+  // Shared significant words: if they share at least one word of 3+ chars,
+  // consider them a match (handles title mismatches across platforms)
+  const wordsA = getSignificantWords(itchTitle);
+  const wordsB = new Set(getSignificantWords(playdateTitle));
+  if (wordsA.some((w) => wordsB.has(w))) return true;
+
+  return false;
+}
+
 export async function sideload(message = console.log) {
   let exists = await fs.pathExists(DATA_PATH);
   if (!exists) {
@@ -169,20 +204,7 @@ export async function sideload(message = console.log) {
   const sideloaded = new Set();
   sideloads.forEach(({ title }) => {
     filteredGames.forEach((o) => {
-      if (o.game.title.toLowerCase().includes(title.toLowerCase())) {
-        sideloaded.add(o);
-      } else if (
-        o.game.title
-          .toLowerCase()
-          .includes(title.toLowerCase().replaceAll(" ", ""))
-      ) {
-        sideloaded.add(o);
-      } else if (
-        o.game.title
-          .toLowerCase()
-          .replace(/[^a-z0-9 ]/gi, "")
-          .includes(title.toLowerCase().replace(/[^a-z0-9 ]/gi, ""))
-      ) {
+      if (titlesMatch(o.game.title, title)) {
         sideloaded.add(o);
       }
     });
